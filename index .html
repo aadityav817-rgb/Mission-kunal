@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Mission Saditya: The Rescue of Jaanii</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Poppins:wght@300;400;600;700&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+
+    body {
+      background: #070510;
+      color: #fff;
+      font-family: 'Poppins', sans-serif;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #game-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      max-width: 500px;
+      background: radial-gradient(circle at top, #1b1035 0%, #070510 100%);
+      overflow: hidden;
+      box-shadow: 0 0 40px rgba(255, 65, 108, 0.25);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      text-align: center;
+      background: rgba(7, 5, 16, 0.92);
+      backdrop-filter: blur(8px);
+      z-index: 20;
+      transition: opacity 0.4s ease;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    h1 {
+      font-family: 'Cinzel', serif;
+      font-size: 1.8rem;
+      background: linear-gradient(90deg, #ff758c, #ff7eb3, #ffd166);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+      letter-spacing: 1px;
+    }
+
+    h2 {
+      font-family: 'Cinzel', serif;
+      font-size: 1.3rem;
+      color: #ffd166;
+      margin-bottom: 10px;
+    }
+
+    p {
+      font-size: 0.92rem;
+      color: #e0d7ff;
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #ff416c, #ff4b2b);
+      color: #fff;
+      border: none;
+      padding: 12px 26px;
+      border-radius: 30px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(255, 65, 108, 0.45);
+      transition: transform 0.15s ease;
+      margin: 6px;
+    }
+
+    .btn:active {
+      transform: scale(0.95);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      box-shadow: none;
+    }
+
+    /* HUD */
+    #hud {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      right: 12px;
+      z-index: 15;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      pointer-events: none;
+    }
+
+    .hud-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .badge {
+      background: rgba(20, 14, 40, 0.85);
+      border: 1px solid rgba(255, 117, 140, 0.4);
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #ffd166;
+      pointer-events: auto;
+    }
+
+    .step-box {
+      background: rgba(15, 10, 32, 0.88);
+      border-left: 3px solid #ff416c;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      color: #fff;
+      text-align: left;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+
+    /* Cutscene Card */
+    .story-img {
+      width: 220px;
+      height: 220px;
+      object-fit: cover;
+      border-radius: 18px;
+      border: 2px solid #ff758c;
+      box-shadow: 0 0 25px rgba(255, 117, 140, 0.4);
+      margin-bottom: 14px;
+    }
+
+    /* Interactive Level Panels */
+    .panel-box {
+      background: rgba(24, 16, 48, 0.95);
+      border: 1px solid rgba(255, 126, 179, 0.35);
+      border-radius: 18px;
+      padding: 18px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 14px 0;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin: 14px 0;
+    }
+
+    .tile-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      padding: 14px 8px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tile-btn.selected {
+      background: rgba(255, 65, 108, 0.35);
+      border-color: #ff758c;
+      color: #ffd166;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px 15px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 117, 140, 0.5);
+      background: rgba(10, 7, 22, 0.9);
+      color: #fff;
+      font-size: 1rem;
+      text-align: center;
+      margin: 12px 0;
+      outline: none;
+    }
+
+    /* Joystick */
+    #joystick-zone {
+      position: absolute;
+      bottom: 24px;
+      left: 24px;
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      border: 2px solid rgba(255, 117, 140, 0.4);
+      z-index: 16;
+      touch-action: none;
+    }
+
+    #joystick-knob {
+      position: absolute;
+      top: 33px;
+      left: 33px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #ff758c, #ff416c);
+      box-shadow: 0 0 12px rgba(255, 65, 108, 0.8);
+      pointer-events: none;
+    }
+
+    #action-btn {
+      position: absolute;
+      bottom: 36px;
+      right: 26px;
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ffd166, #f77f00);
+      border: none;
+      color: #140a26;
+      font-weight: 800;
+      font-size: 0.82rem;
+      box-shadow: 0 0 20px rgba(255, 209, 102, 0.6);
+      z-index: 16;
+    }
+
+    /* Toast Alert */
+    #toast {
+      position: absolute;
+      top: 85px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(220, 38, 38, 0.92);
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      z-index: 50;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    /* Final Letter Scroll */
+    #final-screen {
+      justify-content: flex-start;
+      overflow-y: auto;
+      padding-top: 24px;
+      padding-bottom: 40px;
+    }
+
+    .gallery-strip {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      width: 100%;
+      padding: 10px 0;
+      margin-bottom: 14px;
+    }
+
+    .gallery-strip img {
+      width: 130px;
+      height: 160px;
+      object-fit: cover;
+      border-radius: 14px;
+      border: 2px solid #ffd166;
+      flex-shrink: 0;
+    }
+
+    .letter-box {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 117, 140, 0.4);
+      border-radius: 16px;
+      padding: 16px;
+      text-align: left;
+      font-size: 0.88rem;
+      line-height: 1.65;
+      color: #f8f5ff;
+      white-space: pre-line;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- Toast Notification -->
+    <div id="toast">Galat Chayan! Wapas Shuruat Se...</div>
+
+    <!-- HUD -->
+    <div id="hud" class="hidden">
+      <div class="hud-top">
+        <span class="badge" id="level-badge">Padav 1 / 5</span>
+        <button class="badge" id="music-toggle" onclick="toggleMusic()">🔊 Music: ON</button>
+      </div>
+      <div class="step-box" id="step-instruction">Step instruction loading...</div>
+    </div>
+
+    <!-- Touch Controls -->
+    <div id="joystick-zone" class="hidden">
+      <div id="joystick-knob"></div>
+    </div>
+    <button id="action-btn" class="hidden" onclick="triggerAction()">CHECK</button>
+
+    <!-- START SCREEN -->
+    <div id="start-screen" class="screen">
+      <h1>Mission Saditya</h1>
+      <p><strong>The Rescue of Jaanii</strong><br><br>Koi hint nahi milegi. Har mod par sirf hamari yaadein aur tumhara dimag hi Jaanii ko bacha sakta hai.</p>
+      <button class="btn" onclick="startStory()">Start Journey ❤️</button>
+    </div>
+
+    <!-- STORY CUTSCENE SCREEN -->
+    <div id="story-screen" class="screen hidden">
+      <img id="story-photo" class="story-img" src="" alt="Memory" />
+      <h2 id="story-title">Chapter 1</h2>
+      <p id="story-text"></p>
+      <button class="btn" id="story-next-btn" onclick="nextStorySlide()">Aage Badho ➔</button>
+    </div>
+
+    <!-- MODAL PUZZLE OVERLAY (Zero Hint) -->
+    <div id="puzzle-screen" class="screen hidden">
+      <div class="panel-box" id="puzzle-content"></div>
+    </div>
+
+    <!-- FINAL VICTORY & LETTER SCREEN -->
+    <div id="final-screen" class="screen hidden">
+      <h1>Mission Complete! ❤️</h1>
+      <p style="color:#ffd166; font-weight:600;">Babe ne apne Jaanii ko bacha liya!</p>
+
+      <div class="gallery-strip">
+        <img src="https://i.postimg.cc/Jnjmy3Hw/IMG-20260429-235502-635.jpg" alt="Memory 1" />
+        <img src="https://i.postimg.cc/J4YwzYY1/IMG-20251125-212028-549.jpg" alt="Memory 2" />
+        <img src="https://i.postimg.cc/L6X7wB4d/Gemini-Generated-Image-i9uhppi9uhppi9uh.png" alt="Memory 3" />
+        <img src="https://i.postimg.cc/qR4DL2D5/Gemini-Generated-Image-mwyy9omwyy9omwyy.png" alt="Memory 4" />
+        <img src="https://i.postimg.cc/Dy8jBv5L/Gemini-Generated-Image-ru31tiru31tiru31.png" alt="Memory 5" />
+      </div>
+
+      <div class="letter-box">Sadiya , 
+Yaad hai jab hum dono akele the hum dono ke paas hum dono ke siva koi nhi tha to tu Teri bate mujhe btati thi mai sunta tha meri bate mai tujhe btata tha tu sunti thi par kabhi soche nhi the ki hum dono ek dusre ki bate btate btate khudki ek baat bna lenge mujhe yaad hai ab bhi vo pal jab tune meko purpose ki thi mano jaise ek alag hi chij jispar Visvas kar pana kafi mushkil tha par vo chij huyi kyuki vo uparwala karva rha tha hum dono ek dusre ko nhi dundh rhe the par fir bhi ham mile uske baad kafi sari yade memories hamne jiye hai ikktha kiye h or bht sare pyare pal hamne sath bitaye hai and ab hmara farj h hmara jo rishta bna hai usme khub Sara pyar bharne ka or usko itna jyada pyar se fullfil kar dena ki dono ki soul ek ho jaye ladai bahas har rishte me hoti h but jab man me chije rehne lage to vha rishte me darar aane lagti h tu bhi mere se naraj hoti mai bhi tere se naraj hota par rishta vhi tikta h jo raat ki ladai ko subh yaad na rakhe kuch chije hamesha bolkar hi solve nhi hoti kuch khudse samajhkar or khudko samjhkar bhi solve hoti h jha khudko chup or khudse hi khudko thik kiya jata hai or ye bahas chije to hoti rehngi ye sab chhod main hai hmara pyar hmari dosti inme kabhi kami nhi honi chaiye ham khub ek dusre ko pyar kare or jaise tune mujhe abhi bachai n game me ishi tarah puri zindgi ek dusre ko unki mushibat me bachate rhe I love you so much babe bht jyada pyar h jo words me mai kabhi nhi bta paunga i love you so much.</div>
+    </div>
+  </div>
+
+  <!-- Background Song -->
+  <audio id="bg-audio" loop preload="auto">
+    <source src="https://tmpfiles.org/dl/wXwwESVVo9hs/song.mp3" type="audio/mpeg" />
+  </audio>
+
+  <script>
+    const PHOTOS = [
+      "https://i.postimg.cc/Jnjmy3Hw/IMG-20260429-235502-635.jpg",
+      "https://i.postimg.cc/J4YwzYY1/IMG-20251125-212028-549.jpg",
+      "https://i.postimg.cc/L6X7wB4d/Gemini-Generated-Image-i9uhppi9uhppi9uh.png",
+      "https://i.postimg.cc/qR4DL2D5/Gemini-Generated-Image-mwyy9omwyy9omwyy.png",
+      "https://i.postimg.cc/Dy8jBv5L/Gemini-Generated-Image-ru31tiru31tiru31.png"
+    ];
+
+    // Audio Setup with Fallback Piano
+    const bgAudio = document.getElementById("bg-audio");
+    let musicOn = true;
+    let fallbackInterval = null;
+
+    function playFallbackMelody() {
+      if (fallbackInterval) return;
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const notes = [261.63, 329.63, 392.00, 523.25, 493.88, 392.00, 329.63, 293.66];
+      let idx = 0;
+      fallbackInterval = setInterval(() => {
+        if (!musicOn) return;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.value = notes[idx % notes.length];
+        gain.gain.setValueAtTime(0.06, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.1);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 1.1);
+        idx++;
+      }, 900);
+    }
+
+    function startAudio() {
+      bgAudio.play().catch(() => {
+        playFallbackMelody();
+      });
+    }
+
+    function toggleMusic() {
+      musicOn = !musicOn;
+      document.getElementById("music-toggle").innerText = musicOn ? "🔊 Music: ON" : "🔇 Music: OFF";
+      if (musicOn) {
+        bgAudio.play().catch(() => {});
+      } else {
+        bgAudio.pause();
+      }
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById("toast");
+      t.innerText = msg;
+      t.style.opacity = "1";
+      setTimeout(() => { t.style.opacity = "0"; }, 2200);
+    }
+
+    // STORY CUTSCENES
+    const storySlides = [
+      {
+        photo: PHOTOS[0],
+        title: "1. College Campus Ki Pehli Mulaqat",
+        text: "Hum dono college campus mein mile. Sadiya ('Babe') ne aage badhkar Kunal ('Jaanii') ko propose kiya... aur wahin se hamari khubsoorat kahani shuru hui."
+      },
+      {
+        photo: PHOTOS[1],
+        title: "2. Bus Window & Ek Dusre Ka Haath",
+        text: "Bus ki khidki ke paas baithkar ek dusre ka haath pakadna, baatein karna aur har pal ko hamesha ke liye yaadgar banana..."
+      },
+      {
+        photo: PHOTOS[2],
+        title: "3. Cafe Date & Achanak Khatra!",
+        text: "Hum dono cafe mein cake ke saamne baithe muskurate hain... par tabhi andhere se koi aata hai aur Jaanii ko kidnap karke le jaata hai! Ab Babe ko 5 mushkil padav paar karke Jaanii ko bachana hoga."
+      }
+    ];
+
+    let storyIdx = 0;
+
+    function startStory() {
+      startAudio();
+      document.getElementById("start-screen").classList.add("hidden");
+      document.getElementById("story-screen").classList.remove("hidden");
+      renderStorySlide();
+    }
+
+    function renderStorySlide() {
+      const s = storySlides[storyIdx];
+      document.getElementById("story-photo").src = s.photo;
+      document.getElementById("story-title").innerText = s.title;
+      document.getElementById("story-text").innerText = s.text;
+      document.getElementById("story-next-btn").innerText =
+        storyIdx === storySlides.length - 1 ? "Rescue Mission Shuru Karein ➔" : "Aage Badho ➔";
+    }
+
+    function nextStorySlide() {
+      storyIdx++;
+      if (storyIdx < storySlides.length) {
+        renderStorySlide();
+      } else {
+        document.getElementById("story-screen").classList.add("hidden");
+        initGameWorld();
+      }
+    }
+
+    // CANVAS & 2.5D WORLD SETUP
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    let W, H;
+
+    function resizeCanvas() {
+      const box = document.getElementById("game-container");
+      W = canvas.width = box.clientWidth;
+      H = canvas.height = box.clientHeight;
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    let currentStage = 1; // 1: River, 2: Taste Vault, 3: Mist Maze, 4: Identity Lock, 5: Final Cage
+    let player = { x: 0, y: 0, speed: 3.1, inWater: false };
+    let joy = { active: false, dx: 0, dy: 0 };
+    let crocs = [];
+    let stones = [];
+    let keysCollected = [false, false, false];
+    let roomKeys = [];
+    let animationId = null;
+
+    // Joystick Events
+    const joyZone = document.getElementById("joystick-zone");
+    const joyKnob = document.getElementById("joystick-knob");
+
+    joyZone.addEventListener("touchstart", handleJoy, { passive: false });
+    joyZone.addEventListener("touchmove", handleJoy, { passive: false });
+    joyZone.addEventListener("touchend", () => {
+      joy.active = false;
+      joy.dx = 0;
+      joy.dy = 0;
+      joyKnob.style.transform = "translate(0px, 0px)";
+    });
+
+    function handleJoy(e) {
+      e.preventDefault();
+      const rect = joyZone.getBoundingClientRect();
+      const touch = e.touches[0];
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      let dx = touch.clientX - cx;
+      let dy = touch.clientY - cy;
+      const dist = Math.hypot(dx, dy);
+      const maxR = 35;
+      if (dist > maxR) {
+        dx = (dx / dist) * maxR;
+        dy = (dy / dist) * maxR;
+      }
+      joyKnob.style.transform = `translate(${dx}px, ${dy}px)`;
+      joy.active = true;
+      joy.dx = dx / maxR;
+      joy.dy = dy / maxR;
+    }
+
+    function initGameWorld() {
+      document.getElementById("hud").classList.remove("hidden");
+      document.getElementById("joystick-zone").classList.remove("hidden");
+      document.getElementById("action-btn").classList.remove("hidden");
+      setupStage(1);
+      if (!animationId) gameLoop();
+    }
+
+    function setupStage(stage) {
+      currentStage = stage;
+      document.getElementById("level-badge").innerText = `Padav ${stage} / 5`;
+      document.getElementById("puzzle-screen").classList.add("hidden");
+
+      if (stage === 1) {
+        document.getElementById("step-instruction").innerText =
+          "Step 1: Nadi tairkar paar karo, magarmachh se bacho, aur us paar ke darwaze par pahunch kar CHECK dabao.";
+        player.x = W / 2;
+        player.y = H - 90;
+        crocs = [
+          { x: 60, y: H * 0.45, dir: 1, speed: 2.1 },
+          { x: W - 80, y: H * 0.62, dir: -1, speed: 2.4 }
+        ];
+        stones = [
+          { x: W * 0.25, y: H * 0.36, label: "07" },
+          { x: W * 0.50, y: H * 0.36, label: "12" },
+          { x: W * 0.75, y: H * 0.36, label: "19" }
+        ];
+      } else if (stage === 2) {
+        document.getElementById("step-instruction").innerText =
+          "Step 2: Silent Taste Gate ke saamne khade ho. Darwaza kholne ke liye CHECK dabao.";
+        player.x = W / 2;
+        player.y = H - 110;
+      } else if (stage === 3) {
+        document.getElementById("step-instruction").innerText =
+          "Step 3: Mist Labyrinth ka raasta bhool-bhulaiya se dhaka hai. Gate par CHECK dabakar sahi yaad chuno.";
+        player.x = W / 2;
+        player.y = H - 110;
+      } else if (stage === 4) {
+        document.getElementById("step-instruction").innerText =
+          "Step 4: Shadow Laser Wall rasta rok rahi hai. Lock kholne ke liye CHECK dabao.";
+        player.x = W / 2;
+        player.y = H - 110;
+      } else if (stage === 5) {
+        document.getElementById("step-instruction").innerText =
+          "Step 5: Kamre mein chhupi 3 Golden Keys par chal kar ikattha karo, phir Jaanii ke pinjre par CHECK dabao!";
+        player.x = W / 2;
+        player.y = H - 100;
+        keysCollected = [false, false, false];
+        roomKeys = [
+          { x: 55, y: 170, found: false },
+          { x: W - 55, y: 240, found: false },
+          { x: 65, y: H - 220, found: false }
+        ];
+      }
+    }
+
+    function updateWorld() {
+      if (!document.getElementById("puzzle-screen").classList.contains("hidden")) return;
+      if (!document.getElementById("final-screen").classList.contains("hidden")) return;
+
+      player.x += joy.dx * player.speed;
+      player.y += joy.dy * player.speed;
+      player.x = Math.max(25, Math.min(W - 25, player.x));
+      player.y = Math.max(120, Math.min(H - 60, player.y));
+
+      if (currentStage === 1) {
+        // River zone: H*0.32 to H*0.72
+        player.inWater = player.y > H * 0.32 && player.y < H * 0.72;
+
+        crocs.forEach(c => {
+          c.x += c.dir * c.speed;
+          if (c.x < 35 || c.x > W - 35) c.dir *= -1;
+          if (Math.hypot(player.x - c.x, player.y - c.y) < 30) {
+            showToast("Magarmachh ne pakad liya! Wapas kinare par...");
+            player.x = W / 2;
+            player.y = H - 90;
+          }
+        });
+      }
+
+      if (currentStage === 5) {
+        roomKeys.forEach((k, idx) => {
+          if (!k.found && Math.hypot(player.x - k.x, player.y - k.y) < 30) {
+            k.found = true;
+            keysCollected[idx] = true;
+            showToast(`Golden Key ${keysCollected.filter(Boolean).length} / 3 Mil Gayi!`);
+          }
+        });
+      }
+    }
+
+    function drawAvatar(x, y, name, color, swimming = false) {
+      ctx.save();
+      // Name tag
+      ctx.fillStyle = "rgba(15, 10, 30, 0.85)";
+      ctx.beginPath();
+      ctx.roundRect(x - 28, y - 44, 56, 18, 8);
+      ctx.fill();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 11px Poppins";
+      ctx.textAlign = "center";
+      ctx.fillText(name, x, y - 31);
+
+      // Body
+      if (!swimming) {
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.roundRect(x - 10, y - 10, 20, 22, 6);
+        ctx.fill();
+      } else {
+        // Water ripple
+        ctx.strokeStyle = "rgba(255,255,255,0.6)";
+        ctx.beginPath();
+        ctx.arc(x, y - 4, 16, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      // Head
+      ctx.fillStyle = "#ffe0bd";
+      ctx.beginPath();
+      ctx.arc(x, y - 16, 10, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Hair
+      ctx.fillStyle = "#1a1110";
+      ctx.beginPath();
+      ctx.arc(x, y - 19, 10, Math.PI, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawWorld() {
+      ctx.clearRect(0, 0, W, H);
+
+      if (currentStage === 1) {
+        // Grass banks
+        ctx.fillStyle = "#14281d";
+        ctx.fillRect(0, 0, W, H);
+
+        // Mystic River
+        const grad = ctx.createLinearGradient(0, H * 0.32, 0, H * 0.72);
+        grad.addColorStop(0, "#0077b6");
+        grad.addColorStop(0.5, "#023e8a");
+        grad.addColorStop(1, "#0096c7");
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, H * 0.32, W, H * 0.40);
+
+        // Stones
+        stones.forEach(s => {
+          ctx.fillStyle = "#4a4e69";
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, 20, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = "#ffd166";
+          ctx.font = "bold 12px Poppins";
+          ctx.textAlign = "center";
+          ctx.fillText(s.label, s.x, s.y + 4);
+        });
+
+        // Crocodiles
+        crocs.forEach(c => {
+          ctx.fillStyle = "#38b000";
+          ctx.beginPath();
+          ctx.roundRect(c.x - 24, c.y - 10, 48, 20, 8);
+          ctx.fill();
+          ctx.fillStyle = "#fff";
+          ctx.font = "10px Poppins";
+          ctx.textAlign = "center";
+          ctx.fillText("🐊", c.x, c.y + 4);
+        });
+
+        // Gate at top
+        drawGate(W / 2, 145, "River Gate");
+      } else if (currentStage === 2) {
+        ctx.fillStyle = "#1c1124";
+        ctx.fillRect(0, 0, W, H);
+        drawGate(W / 2, 160, "Taste Vault");
+      } else if (currentStage === 3) {
+        ctx.fillStyle = "#0b0918";
+        ctx.fillRect(0, 0, W, H);
+        // Mist walls
+        ctx.strokeStyle = "rgba(255, 117, 140, 0.25)";
+        ctx.lineWidth = 4;
+        ctx.strokeRect(30, 130, W - 60, H - 220);
+        drawGate(W / 2, 160, "Mist Exit");
+      } else if (currentStage === 4) {
+        ctx.fillStyle = "#15081c";
+        ctx.fillRect(0, 0, W, H);
+        // Laser beam
+        ctx.strokeStyle = "#ff0055";
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.moveTo(20, 220);
+        ctx.lineTo(W - 20, 220);
+        ctx.stroke();
+        drawGate(W / 2, 160, "Shadow Lock");
+      } else if (currentStage === 5) {
+        ctx.fillStyle = "#190e26";
+        ctx.fillRect(0, 0, W, H);
+
+        // Hidden Keys in room
+        roomKeys.forEach(k => {
+          if (!k.found) {
+            ctx.fillStyle = "rgba(255, 209, 102, 0.22)";
+            ctx.beginPath();
+            ctx.arc(k.x, k.y, 16, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = "#ffd166";
+            ctx.font = "16px Poppins";
+            ctx.textAlign = "center";
+            ctx.fillText("🔑", k.x, k.y + 6);
+          }
+        });
+
+        // Jaanii trapped in cage at top
+        drawAvatar(W / 2, 165, "Jaanii", "#4cc9f0", false);
+        ctx.strokeStyle = "#ffd166";
+        ctx.lineWidth = 3;
+        ctx.strokeRect(W / 2 - 28, 120, 56, 65);
+      }
+
+      // Draw Babe (Player)
+      drawAvatar(player.x, player.y, "Babe", "#ff4d8d", player.inWater);
+    }
+
+    function drawGate(x, y, label) {
+      ctx.fillStyle = "#2b193d";
+      ctx.beginPath();
+      ctx.roundRect(x - 45, y - 25, 90, 50, 12);
+      ctx.fill();
+      ctx.strokeStyle = "#ffd166";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.fillStyle = "#ffd166";
+      ctx.font = "bold 12px Poppins";
+      ctx.textAlign = "center";
+      ctx.fillText(label, x, y + 4);
+    }
+
+    function gameLoop() {
+      updateWorld();
+      drawWorld();
+      animationId = requestAnimationFrame(gameLoop);
+    }
+
+    // ZERO-HINT PUZZLE TRIGGERS
+    function triggerAction() {
+      if (currentStage === 1) {
+        if (player.y > 220) {
+          showToast("Pehle nadi paar karke upar Gate ke paas jao!");
+          return;
+        }
+        openPuzzle1();
+      } else if (currentStage === 2) {
+        if (player.y > 240) {
+          showToast("Pehle Taste Vault ke paas pahunchiye!");
+          return;
+        }
+        openPuzzle2();
+      } else if (currentStage === 3) {
+        if (player.y > 240) {
+          showToast("Mist Exit gate ke paas jaiye!");
+          return;
+        }
+        openPuzzle3();
+      } else if (currentStage === 4) {
+        if (player.y > 270) {
+          showToast("Shadow Lock ke paas jaiye!");
+          return;
+        }
+        openPuzzle4();
+      } else if (currentStage === 5) {
+        if (keysCollected.filter(Boolean).length < 3) {
+          showToast(`Abhi sirf ${keysCollected.filter(Boolean).length}/3 chaabiyan mili hain!`);
+          return;
+        }
+        if (player.y > 240) {
+          showToast("Jaanii ke pinjre ke paas jaiye!");
+          return;
+        }
+        openPuzzle5();
+      }
+    }
+
+    // PADAV 1: Secret Number (12) - Zero Hint
+    function openPuzzle1() {
+      const box = document.getElementById("puzzle-content");
+      box.innerHTML = `
+        <h2>River Gate Lock</h2>
+        <p>Step: Darwaza kholne ke liye sahi number chuno.</p>
+        <div class="grid-3">
+          <button class="tile-btn" onclick="checkP1('05')">05</button>
+          <button class="tile-btn" onclick="checkP1('19')">19</button>
+          <button class="tile-btn" onclick="checkP1('12')">12</button>
+          <button class="tile-btn" onclick="checkP1('24')">24</button>
+          <button class="tile-btn" onclick="checkP1('08')">08</button>
+          <button class="tile-btn" onclick="checkP1('30')">30</button>
+        </div>
+        <button class="btn btn-secondary" onclick="closePuzzle()">Wapas</button>
+      `;
+      document.getElementById("puzzle-screen").classList.remove("hidden");
+    }
+
+    function checkP1(val) {
+      if (val === "12") {
+        showToast("Sahi Number! Padav 2 Khul Gaya!");
+        setupStage(2);
+      } else {
+        showToast("Galat Number! Nadi ke shuruat mein wapas bheja gaya!");
+        setupStage(1);
+      }
+    }
+
+    // PADAV 2: Dislike (Tomato) & Favorites (Matar Paneer, Gulab Jamun, Rasgulla) - Zero Hint
+    let selectedTaste = [];
+    function openPuzzle2() {
+      selectedTaste = [];
+      const items = [
+        "Pizza", "Tomato", "Matar Paneer",
+        "Burger", "Gulab Jamun", "Bhindi",
+        "Rasgulla", "Pasta", "Samosa"
+      ];
+      const box = document.getElementById("puzzle-content");
+      box.innerHTML = `
+        <h2>Silent Taste Vault</h2>
+        <p>Step: Pehle woh 1 cheez chuno jisse Jaanii nafrat karta hai, aur phir uski 3 sabse pasandeeda cheezein chuno (Total 4).</p>
+        <div class="grid-3" id="taste-grid">
+          ${items.map(item => `<button class="tile-btn" onclick="toggleTaste(this, '${item}')">${item}</button>`).join("")}
+        </div>
+        <button class="btn" onclick="verifyTaste()">Unlock Vault</button>
+        <button class="btn btn-secondary" onclick="closePuzzle()">Wapas</button>
+      `;
+      document.getElementById("puzzle-screen").classList.remove("hidden");
+    }
+
+    function toggleTaste(btn, item) {
+      if (selectedTaste.includes(item)) {
+        selectedTaste = selectedTaste.filter(i => i !== item);
+        btn.classList.remove("selected");
+      } else {
+        if (selectedTaste.length >= 4) return;
+        selectedTaste.push(item);
+        btn.classList.add("selected");
+      }
+    }
+
+    function verifyTaste() {
+      const required = ["Tomato", "Matar Paneer", "Gulab Jamun", "Rasgulla"];
+      const ok = selectedTaste.length === 4 && required.every(r => selectedTaste.includes(r));
+      if (ok) {
+        showToast("Bilkul Sahi! Padav 3 Khul Gaya!");
+        setupStage(3);
+      } else {
+        showToast("Galat Chayan! Lock reset ho gaya.");
+        openPuzzle2();
+      }
+    }
+
+    // PADAV 3: Bus Window with Handshake Memory - Zero Hint
+    function openPuzzle3() {
+      const box = document.getElementById("puzzle-content");
+      box.innerHTML = `
+        <h2>Mist Labyrinth Exit</h2>
+        <p>Step: Bhool-bhulaiya se bahar nikalne ke liye hamari sabse khaas yaad wala rasta chuno.</p>
+        <div class="grid-2">
+          <button class="tile-btn" onclick="checkP3(false)">Train Station Walk</button>
+          <button class="tile-btn" onclick="checkP3(false)">Cinema Hall Corner</button>
+          <button class="tile-btn" onclick="checkP3(true)">Bus Window & Handshake</button>
+          <button class="tile-btn" onclick="checkP3(false)">City Park Bench</button>
+        </div>
+        <button class="btn btn-secondary" onclick="closePuzzle()">Wapas</button>
+      `;
+      document.getElementById("puzzle-screen").classList.remove("hidden");
+    }
+
+    function checkP3(isCorrect) {
+      if (isCorrect) {
+        showToast("Sahi Raasta! Padav 4 Khul Gaya!");
+        setupStage(4);
+      } else {
+        showToast("Galat Mod! Wapas shuruat par bheja gaya!");
+        setupStage(3);
+      }
+    }
+
+    // PADAV 4: Saditya (No "combined name" hint)
+    function openPuzzle4() {
+      const box = document.getElementById("puzzle-content");
+      box.innerHTML = `
+        <h2>Shadow Identity Lock</h2>
+        <p>Step: Aage ka rasta tabhi khulega jab tum us ek shabd ko likhogi jo hum dono ke astitva (existence) ko ek banata hai.</p>
+        <input type="text" id="identity-input" placeholder="Yahan likho..." autocomplete="off" />
+        <button class="btn" onclick="checkP4()">Laser Band Karo</button>
+        <button class="btn btn-secondary" onclick="closePuzzle()">Wapas</button>
+      `;
+      document.getElementById("puzzle-screen").classList.remove("hidden");
+    }
+
+    function checkP4() {
+      const val = document.getElementById("identity-input").value.trim().toLowerCase();
+      if (val === "saditya") {
+        showToast("Laser Deactivated! Aakhri Padav par pahunch gaye!");
+        setupStage(5);
+      } else {
+        showToast("Galat Shabd! Phir se socho...");
+      }
+    }
+
+    // PADAV 5: Final Cage Lock (Life Partner) - Zero Hint
+    function openPuzzle5() {
+      const box = document.getElementById("puzzle-content");
+      box.innerHTML = `
+        <h2>Final Cage Cryptex</h2>
+        <p>Step: Teeno chaabiyan lag chuki hain. Pinjra kholne ke liye likho ki Jaanii ki zindagi mein tumhari asli jagah kya hai?</p>
+        <input type="text" id="partner-input" placeholder="Apna jawab likho..." autocomplete="off" />
+        <button class="btn" onclick="checkP5()">Jaanii Ko Azaad Karo ❤️</button>
+        <button class="btn btn-secondary" onclick="closePuzzle()">Wapas</button>
+      `;
+      document.getElementById("puzzle-screen").classList.remove("hidden");
+    }
+
+    function checkP5() {
+      const val = document.getElementById("partner-input").value.trim().toLowerCase();
+      if (val === "life partner" || val === "lifepartner") {
+        document.getElementById("puzzle-screen").classList.add("hidden");
+        document.getElementById("hud").classList.add("hidden");
+        document.getElementById("joystick-zone").classList.add("hidden");
+        document.getElementById("action-btn").classList.add("hidden");
+        document.getElementById("final-screen").classList.remove("hidden");
+      } else {
+        showToast("Yeh woh shabd nahi hai! Dil se socho...");
+      }
+    }
+
+    function closePuzzle() {
+      document.getElementById("puzzle-screen").classList.add("hidden");
+    }
+  </script>
+</body>
+</html>
